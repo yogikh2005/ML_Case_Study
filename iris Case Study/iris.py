@@ -1,30 +1,30 @@
-#-----------------------------------------------------------------
+#----------------------------------------------------------------- 
 # Required Python Packages 
-#-----------------------------------------------------------------
+#----------------------------------------------------------------- 
 
 import pandas as pd
-import numpy as np
-
-from sklearn.metrics import (
-accuracy_score,
-confusion_matrix,
-ConfusionMatrixDisplay,
-classification_report
-)
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import train_test_split
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier,plot_tree
+
+from sklearn.metrics import(
+accuracy_score,
+confusion_matrix,
+classification_report,
+ConfusionMatrixDisplay)
+
 import joblib
-#-----------------------------------------------------------------
-# File Paths
+
+#----------------------------------------------------------------- 
+# File Paths 
 #-----------------------------------------------------------------
 
-INPUT_FILE = "diabetes.csv"
-OUTPUT_FILE = "final_diabetes_predictions.csv"
-MODEL_PATH = "diabetes.joblib"
+INPUT_PATH = "iris.csv" 
+OUTPUT_PATH = "iris-Output.csv" 
+MODEL_PATH = "iris.joblib" 
 
 #-----------------------------------------------------------------
 # Fucntion Name : display_Info
@@ -32,7 +32,7 @@ MODEL_PATH = "diabetes.joblib"
 # Paramaters    : title(str)
 # Return        : None
 # Author        : Yogiraj Khaladkar 
-# Date          : 10/04/2026
+# Date          : 17/04/2026
 #------------------------------------------------------------------
 def display_Info(title):
     """Display the message"""
@@ -45,10 +45,9 @@ def display_Info(title):
 # Description    : It shows basic information about the dataset
 # Paramaters     : Dataset(df)
 #                  df -> pandas dataframe object
-#                  message -> Heading text to display
 # Return         : None
 # Author         : Yogiraj Khaladkar
-# Date           : 10/04/2026
+# Date           : 17/04/2026
 #------------------------------------------------------------------
 def dataset_statistics(df):
     """It shows basic information about the dataset"""
@@ -68,123 +67,20 @@ def dataset_statistics(df):
     print("\n Missing value in dataset")
     print(df.isnull().sum())
 
-    sns.countplot(x='Outcome', data=df)
-    plt.title("Distribution of Outcome")
-    plt.show()
-
-    df.hist(figsize=(12,10))
-    plt.tight_layout()
-    plt.show()
-
-    plt.figure(figsize=(12,8))
-    sns.boxplot(data=df)
-    plt.xticks(rotation=45)
-    plt.title("Boxplot for Outlier Detection")
-    plt.show()
-
-#-----------------------------------------------------------------
-# Fucntion Name : clean_diabetes_data
-# Description   : It does preprocessing
-#                 It handle missing values
-# Paramaters    : df -> Pandas dataframe
-# Return        : df -> Clean Pandas dataframe
-# Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
-#------------------------------------------------------------------
-def clean_diabetes_data(df):
-   
-    # Handle SkinThickness columns
-
-    if "SkinThickness" in df.columns:
-        print("SkinThickness columns before filling missing value :")
-        print(df["SkinThickness"].head(10))
-
-        # replace the zero with nan
-        df['SkinThickness'] = df['SkinThickness'].replace(0, np.nan)
-
-        # coerce invalied value gets converted as NAN
-        df["SkinThickness"] = pd.to_numeric(df["SkinThickness"],errors="coerce")
-
-        SkinThickness_median=df["SkinThickness"].median()
-        
-        # Replace missing value
-        df["SkinThickness"]=df["SkinThickness"].fillna(SkinThickness_median)
-
-        print("SkinThickness columns after preprocessing")
-        print(df["SkinThickness"].head(10))
-
-
-    # Handle Insulin columns 
-    if "Insulin" in df.columns :
-        print("\n Insulin columns before preprocessing")
-        print(df["Insulin"].head(10))
-
-        df['Insulin'] = df['Insulin'].replace(0, np.nan)
-
-        # coerce invalied value gets converted as NAN
-        df["Insulin"] = pd.to_numeric(df["Insulin"],errors="coerce")
-
-        fare_median=df["Insulin"].median()
+    plt.figure(figsize=(7,5))
     
-        df["Insulin"]=df["Insulin"].fillna(fare_median)
-
-        print("Insulin columns after preprocessing")
-        print(df["Insulin"].head(10))
-
-        median = df["Insulin"].median()
+    for sp in df["variety"].unique():
+            temp = df[df["variety"]==sp]
+            plt.scatter(temp["petal.length"],temp["petal.width"],label=sp)
     
-        Q1 = df["Insulin"].quantile(0.25)
-        Q3 = df["Insulin"].quantile(0.75)
-        IQR = Q3 - Q1
-        
-        lower = Q1 - 1.5 * IQR
-        upper = Q3 + 1.5 * IQR
-        
-        df["Insulin"] = df["Insulin"].apply(lambda x: median if x < lower or x > upper else x)
-    if "BMI" in df.columns:
-        print("BMI before preprocessing:")
-        print(df["BMI"].head(10))
+    plt.title("Iris : Petal length vs Petal width")
+    
+    plt.xlabel("petal length (cm)")
+    plt.ylabel("petal width (cm)")
 
-        # Replace invalid zeros with NaN
-        df["BMI"] = df["BMI"].replace(0, np.nan)
-
-        # Convert to numeric (coerce errors)
-        df["BMI"] = pd.to_numeric(df["BMI"], errors="coerce")
-
-        # Median imputation
-        bmi_median = df["BMI"].median()
-        df["BMI"] = df["BMI"].fillna(bmi_median)
-
-        print("BMI after preprocessing:")
-        print(df["BMI"].head(10))
-
-    if "BloodPressure" in df.columns:
-        print("BloodPressure before preprocessing:")
-        print(df["BloodPressure"].head(10))
-
-        df["BloodPressure"] = df["BloodPressure"].replace(0, np.nan)
-        df["BloodPressure"] = pd.to_numeric(df["BloodPressure"], errors="coerce")
-
-        bp_median = df["BloodPressure"].median()
-        df["BloodPressure"] = df["BloodPressure"].fillna(bp_median)
-
-        print("BloodPressure after preprocessing:")
-        print(df["BloodPressure"].head(10))
-
-    if "Glucose" in df.columns:
-        print("Glucose before preprocessing:")
-        print(df["Glucose"].head(10))
-
-        df["Glucose"] = df["Glucose"].replace(0, np.nan)
-        df["Glucose"] = pd.to_numeric(df["Glucose"], errors="coerce")
-
-        glucose_median = df["Glucose"].median()
-        df["Glucose"] = df["Glucose"].fillna(glucose_median)
-
-        print("Glucose after preprocessing:")
-        print(df["Glucose"].head(10))
-
-    return df
+    plt.legend()
+    plt.grid()
+    plt.show()
 
 #-----------------------------------------------------------------
 # Function Name  : split_dataset 
@@ -192,7 +88,7 @@ def clean_diabetes_data(df):
 # Parameters     : Dataset with related information 
 # Return         : Dataset after splitting 
 # Author         : Yogiraj Khaladkar
-# Date           : 10/04/2026
+# Date           : 17/04/2026
 #-----------------------------------------------------------------
 
 def split_dataset(dataset, feature_headers,target_header, train_percentage ,random_state=42): 
@@ -205,33 +101,22 @@ def split_dataset(dataset, feature_headers,target_header, train_percentage ,rand
 
     return train_x, test_x, train_y, test_y 
 
-
 # ------------------------------------------------------------------
-# Function Name : train_diabetes_model
+# Function Name : train_model
 # Description   : Trains a Decision Tree Classifier using the training dataset.
 # Parameters    :
 #               : train_x (DataFrame): Training feature dataset.
 #               : train_y (Series): Training target labels.
 # Returns       : DecisionTreeClassifier: Trained Decision Tree model.
 # Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
+# Date          : 17/04/2026
 # ------------------------------------------------------------------
+def train_model(train_x, train_y):
+    model=DecisionTreeClassifier(
 
-def train_diabetes_model(train_x, train_y):
-    """
-    Train a Decision Tree Classifier on the diabetes dataset.
-
-    Parameters:
-        train_x (DataFrame): Training feature dataset.
-        train_y (Series): Training target labels.
-
-    Returns:
-        DecisionTreeClassifier: Trained model.
-    """
-    model = DecisionTreeClassifier(
         criterion="gini",
-        random_state=42,
-        max_depth=2
+        max_depth=5, # hyper parameter tuning
+        random_state=42
     )
 
     model.fit(train_x, train_y)
@@ -240,24 +125,10 @@ def train_diabetes_model(train_x, train_y):
     return model
 
 #------------------------------------------------------------------
-# Function name : plot_heatmap 
-# Description   : Display the confusion matrix using a heatmap.    
-# Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
-#------------------------------------------------------------------
-def plot_heatmap(cm):
-        """Display the confusion matrix using a heatmap."""
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.xlabel("Predicted")
-        plt.ylabel("Actual")
-        plt.title("Confusion Matrix")
-        plt.show()
-
-#------------------------------------------------------------------
 # Function name : save_csv 
 # Description   : Save the final output csv"
 # Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
+# Date          : 17/04/2026
 #------------------------------------------------------------------
 def save_csv(test_x,test_y,predictions):
         """Save the final output csv"""
@@ -268,7 +139,7 @@ def save_csv(test_x,test_y,predictions):
         result_df['Predicted'] = predictions
 
         # Save to CSV
-        result_df.to_csv(OUTPUT_FILE, index=False)
+        result_df.to_csv(OUTPUT_PATH, index=False)
 
 #-----------------------------------------------------------------
 # Fucntion Name : save_model
@@ -277,8 +148,9 @@ def save_csv(test_x,test_y,predictions):
 #                 path
 # Return        : None
 # Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
+# Date          : 17/04/2026
 #------------------------------------------------------------------
+
 def save_model(model,path= MODEL_PATH):
     """ Save the model"""
     joblib.dump(model,path)
@@ -291,9 +163,8 @@ def save_model(model,path= MODEL_PATH):
 # Paramaters    : path 
 # Return        : model
 # Author        : Yogiraj Khaladkar
-# Date          : 10/04/2026
+# Date          : 17/04/2026
 #------------------------------------------------------------------
-
 def load_model(path = MODEL_PATH):
     """Load the train model"""
 
@@ -303,13 +174,27 @@ def load_model(path = MODEL_PATH):
 
     return loaded_model
 
+#------------------------------------------------------------------
+# Function name : plot_heatmap 
+# Description   : Display the confusion matrix using a heatmap.    
+# Author        : Yogiraj Khaladkar
+# Date          : 17/04/2026
+#------------------------------------------------------------------
+def plot_heatmap(cm):
+        """Display the confusion matrix using a heatmap."""
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.title("Confusion Matrix")
+        plt.show()
+
 #-----------------------------------------------------------------
 # Fucntion Name  : main()
 # Description    : Starting point of the application.This is main pipeline controller.
 # Paramaters     : None
 # Return         : None
 # Author         : Yogiraj Khaladkar
-# Date           : 10/04/2026
+# Date           : 17/04/2026
 #------------------------------------------------------------------
 def main():
     """Main function from where exexution starts"""
@@ -317,18 +202,16 @@ def main():
     # 1 Load CSV 
     display_Info("Step 1: Load dataset")
     print("Dataset loaded")
-    dataset = pd.read_csv(INPUT_FILE) 
+    dataset = pd.read_csv(INPUT_PATH) 
 
     # 2 Basic stats 
     display_Info("Step 2 : Print Basic data of dataset")
     dataset_statistics(dataset) 
 
-    # 3 Clean dataaset
-    display_Info("Step 3 : Clean dataset")
-    dataset = clean_diabetes_data(dataset)
-   
-    feature_headers = dataset.drop("Outcome",axis=1)
-    target_header =  dataset['Outcome']
+    # 3 Select feature & target
+    display_Info("Select the feature & target")
+    feature_headers = dataset.drop("variety",axis=1)
+    target_header =  dataset['variety']
 
     # 4 Split 
     display_Info("Step 4 : Split dataset")
@@ -341,7 +224,7 @@ def main():
 
     # 5 Build + Train Pipeline 
     display_Info("Step 5 : Build + Train ")
-    trained_model = train_diabetes_model(train_x, train_y) 
+    trained_model = train_model(train_x, train_y) 
     print("Trained mode : ", trained_model) 
     
     # 6 Predictions 
