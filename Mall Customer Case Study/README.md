@@ -23,7 +23,7 @@ The project includes:
 ## 📂 Project Structure
 
 ```
-Mall Customer Segmentation/
+Mall Customer Case Study/
 │
 ├── Mall_Customers.csv
 ├── Final_Mall_Customers_Predictions.csv
@@ -125,9 +125,8 @@ Final_Mall_Customers_Predictions.csv
 
 The Elbow Method helps determine the optimal number of clusters.
 
-```markdown
-![Elbow Method](Elbow_Method_Output.png)
-```
+![Elbow Method](./Elbow_Method_Output.png)
+
 
 ---
 
